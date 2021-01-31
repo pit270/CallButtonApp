@@ -1,0 +1,7 @@
+Thanks to elhayra on github for the base tcp server code!!
+
+https://github.com/elhayra/tcp_server_client
+
+Thanks to Tencent for the RapidJson library
+
+https://rapidjson.org/ 

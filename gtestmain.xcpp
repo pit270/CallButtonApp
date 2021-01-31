@@ -1,0 +1,156 @@
+#include "console.h"
+#include "order.h"
+#include "item.h"
+#include "customer.h"
+#include "googletest/include/gtest/gtest.h"
+#include <iostream>
+
+using namespace std;
+
+//CUSTOMER.CPP:
+TEST (CUSTOMER, CONSTRUCTOR_INT) {
+  customer test("A2", 1, "andy");
+  EXPECT_EQ(1, test.getPaymentMethod());
+}
+
+TEST (CUSTOMER, CONSTRUCTOR_SEAT) {
+  customer test("A2", 1, "andy");
+  EXPECT_EQ("A2", test.getSeat());
+}
+
+TEST (CUSTOMER, CONSTRUCTOR_NAME) {
+  customer test("A2", 1, "andy");
+  EXPECT_EQ("andy", test.getName());
+}
+
+TEST (CUSTOMER, SET_PAYMENT_METHOD) {
+  customer test("A2", 1, "andy");
+  test.setPaymentMethod(0);
+  EXPECT_EQ(0, test.getPaymentMethod());
+}
+
+//ITEM.CPP:
+TEST (ITEMS, DEFAULT_CONSTRUCTOR) {
+  item test;
+  testing::internal::CaptureStdout(); 
+  cout << test; 
+  string output = testing::internal::GetCapturedStdout(); 
+  EXPECT_EQ("NO NAME: 0 available, $0each, NO BARCODE\n", output);
+}
+
+TEST (ITEMS, PARAMATERIZED_CONSTRUCTOR) {
+  item test(2, 10, 100, "chips", "1234567");
+  string output;
+  testing::internal::CaptureStdout(); 
+  cout << test; 
+  output = testing::internal::GetCapturedStdout(); 
+  EXPECT_EQ("chips: 100 available, $10each, 1234567\n", output);
+}
+
+TEST (ITEMS, SET_INVENTORY) {
+  item test(2, 10, 100, "chips", "1234567");
+  test.setInventory(20);
+  EXPECT_EQ(20, test.getInventory());
+}
+
+TEST (ITEMS, SET_NAME) {
+  item test(2, 10, 100, "chips", "1234567");
+  test.setName("coke");
+  EXPECT_EQ("coke", test.getName());
+}
+
+TEST (ITEMS, SET_BARCODE) {
+  item test(2, 10, 100, "chips", "1234567");
+  test.setBarcode("1234");
+  EXPECT_EQ("1234", test.getBarcode());
+}
+
+TEST (ITEMS, EQUALS_OPERATOR) {
+  item test1(2, 10, 100, "chips", "1234567");
+  item test2(2, 10, 100, "chips", "1234567");
+  EXPECT_TRUE(test1 == test2);
+}
+
+TEST (ITEMS, INCREMENT) {
+  item test(2, 10, 100, "chips", "1234567");
+  test.incrementItem();
+  EXPECT_EQ(3, test.getNumInOrder());
+}
+
+TEST (ITEMS, DECREMENT) {
+  item test(2, 10, 100, "chips", "1234567");
+  test.decrementItem();
+  EXPECT_EQ(1, test.getNumInOrder());
+}
+
+//MENU.CPP:
+TEST (MENU, CONSTRUCTOR) {
+  menu test("night");
+  EXPECT_EQ("night", test.getMenuType());
+}
+
+TEST (MENU, SET_MENU_TYPE) {
+  menu test("night");
+  test.setMenuType("Day");
+  EXPECT_EQ("Day", test.getMenuType());
+}
+
+TEST (MENU, ADD_ITEM) {
+  menu test("night");
+  test.addItem(item(2, 10, 100, "chips", "1234567"));
+  EXPECT_EQ("chips", test.getVec().at(0).getName());
+}
+
+TEST (MENU, REMOVE_ITEM_BY_BARCODE) {
+  menu test("night");
+  test.addItem(item(2, 10, 100, "chips", "1234567"));
+  test.addItem(item(4, 11, 99, "coke", "1234"));
+  test.addItem(item(1, 24, 84, "nuts", "12"));
+  test.removeItem("chips");
+  test.removeItem("1234");
+  EXPECT_TRUE((test.getVec().at(0).getName() == "nuts") && (test.getVec().size() == 1));
+}
+
+TEST (MENU, DISPLAY_ITEMS_POSSIBLE_ERROR_TEST) {//[FIXME??]
+  menu test("night");
+  test.addItem(item(2, 10, 100, "chips", "1234567"));
+  test.addItem(item(4, 11, 99, "coke", "1234"));
+  test.addItem(item(1, 24, 84, "nuts", "12"));
+  testing::internal::CaptureStdout(); 
+  test.displayItems();
+  string output = testing::internal::GetCapturedStdout(); 
+  EXPECT_EQ("chips: 100 available, $10each, 1234567\ncoke: 99 available, $11each, 1234\nnuts: 84 available, $24each, 12\n", output);
+}
+
+//ORDER.CPP:
+TEST (ORDER, CONSTRUCTOR) {
+  order test(customer("A2", 1, "andy"), "10:00");
+  EXPECT_EQ("A2", test.getCustomer().getSeat());
+}
+
+TEST (ORDER, ADD_ITEM_TO_ORDER_EXISTS) {
+  order test(customer("A2", 1, "andy"), "10:00");
+  test.addItemToOrder(item(1, 24, 84, "nuts", "12"));
+  test.addItemToOrder(item(1, 24, 84, "nuts", "12"));
+  EXPECT_EQ(1, test.getVec().size());
+}
+
+TEST (ORDER, ADD_ITEM_TO_ORDER_DOES_NOT_EXISTS) {
+  order test(customer("A2", 1, "andy"), "10:00");
+  test.addItemToOrder(item(1, 24, 84, "nuts", "12"));
+  test.addItemToOrder(item(4, 22, 83, "chips", "11"));
+  EXPECT_EQ(2, test.getVec().size());
+}
+
+TEST (ORDER, REMOVE_FROM_ORDER) {
+  order test(customer("A2", 1, "andy"), "10:00");
+  test.addItemToOrder(item(1, 24, 84, "nuts", "12"));
+  test.addItemToOrder(item(4, 22, 83, "chips", "11"));
+  test.removeItemFromOrder(item(4, 22, 83, "chips", "11"));
+  EXPECT_EQ(1, test.getVec().size());
+}
+
+int main(int argc, char* argv[]) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
